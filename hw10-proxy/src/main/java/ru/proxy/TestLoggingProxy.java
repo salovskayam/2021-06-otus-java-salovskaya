@@ -5,6 +5,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 
 class TestLoggingProxy {
@@ -21,36 +22,40 @@ class TestLoggingProxy {
 
     static class TestLoggingInvocationHandler implements InvocationHandler {
         private final Calculation calculation;
+        private final List<Method> annotatedMethods;
 
         TestLoggingInvocationHandler(Calculation calculation) {
             this.calculation = calculation;
+            this.annotatedMethods = getAnnotatedMethods(calculation, Log.class);
         }
 
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-            if (methodIsAnnotated(calculation, method, Log.class)) {
+            if (methodIsEqual(annotatedMethods, method)) {
                 printResult(method, args);
             }
             return method.invoke(calculation, args);
         }
-    }
 
-    private static boolean methodIsAnnotated(Object obj, Method method, Class<? extends Annotation> annotationClass) {
-        for (Method m : obj.getClass().getDeclaredMethods()) {
-            if (!m.getName().equals(method.getName())) {
-                continue;
-            }
-            if (!Arrays.equals(m.getParameterTypes(), method.getParameterTypes())) {
-                continue;
-            }
-            if (!m.getReturnType().equals(method.getReturnType())) {
-                continue;
-            }
-            if (m.isAnnotationPresent(annotationClass)) {
-                return true;
-            }
+        private static List<Method> getAnnotatedMethods(Object obj, Class<? extends Annotation> annotationClass) {
+            return Arrays.stream(obj.getClass().getDeclaredMethods()).filter(x -> x.isAnnotationPresent(annotationClass))
+                    .collect(Collectors.toList());
         }
-        return false;
+
+        private static boolean methodIsEqual(List<Method> annotatedMethods, Method method) {
+            for (Method m : annotatedMethods) {
+                if (!m.getName().equals(method.getName())) {
+                    continue;
+                }
+                if (!Arrays.equals(m.getParameterTypes(), method.getParameterTypes())) {
+                    continue;
+                }
+                if (m.getReturnType().equals(method.getReturnType())) {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 
     private static void printResult(Method method, Object[] args) {

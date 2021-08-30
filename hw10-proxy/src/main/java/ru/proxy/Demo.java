@@ -12,6 +12,6 @@ public class Demo {
         TestLoggingProxy.createTestLoggingProxy().calculation(6, 10);
         TestLoggingProxy.createTestLoggingProxy().calculation(6, 11, "hello");
         TestLoggingProxy.createTestLoggingProxy().calculation("hello", "world");
-        TestLoggingProxy.createTestLoggingProxy().calculation(100_000);
+        TestLoggingProxy.createTestLoggingProxy().calculation(100_000L);
     }
 }

@@ -1,7 +1,5 @@
 package ru.proxy;
 
-import ru.proxy.Log;
-
 public class TestLogging implements Calculation {
     @Log
     public void calculation() {}
@@ -24,6 +22,6 @@ public class TestLogging implements Calculation {
 
     @Log
     public String calculation(Long param) {
-        return null;
+        return "test";
     }
 }
