@@ -22,7 +22,7 @@ class ProcessorTest {
     void processingTest(@TempDir Path tempDir) throws IOException {
         System.out.println(tempDir);
 
-        //givenx
+        //given
         var inputDataFileName = "inputData.json";
         var outputDataFileName = "outputData.json";
         var fullOutputFilePath = String.format("%s%s%s",tempDir, File.separator, outputDataFileName);

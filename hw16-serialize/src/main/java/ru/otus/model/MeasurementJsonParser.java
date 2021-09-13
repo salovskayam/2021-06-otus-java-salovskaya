@@ -1,14 +1,10 @@
 package ru.otus.model;
 
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class MeasurementJsonParser extends Measurement{
-
+public abstract class MeasurementJsonParser {
     @JsonCreator
-    public MeasurementJsonParser(@JsonProperty("name") String name, @JsonProperty("value") double value) {
-        super(name, value);
+    protected MeasurementJsonParser(@JsonProperty("name") String name, @JsonProperty("value") double value) {
     }
-
 }
