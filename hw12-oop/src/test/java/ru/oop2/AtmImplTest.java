@@ -24,27 +24,27 @@ class AtmImplTest {
 
     @Test
     void checkBalance1() {
-         assertEquals(0, atm.checkBalance());
+         assertEquals(0, atm.getBalance());
     }
 
     @Test
     void checkBalance2() {
         atm.putCash(Arrays.asList(banknote_1000));
-        assertEquals(1000, atm.checkBalance());
+        assertEquals(1000, atm.getBalance());
     }
 
     @Test
     void checkBalance3() {
         atm.putCash(Arrays.asList(banknote_1000, banknote_1000));
         atm.getCash(1000);
-        assertEquals(1000, atm.checkBalance());
+        assertEquals(1000, atm.getBalance());
     }
 
     @Test
     void checkBalance4() {
         atm.putCash(Arrays.asList(banknote_1000, banknote_1000));
-        atm.getCash(atm.checkBalance());
-        assertEquals(0, atm.checkBalance());
+        atm.getCash(atm.getBalance());
+        assertEquals(0, atm.getBalance());
     }
 
     @Test
@@ -52,7 +52,7 @@ class AtmImplTest {
         atm.putCash(Arrays.asList(banknote_1000));
         atm.getCash(1000);
         atm.putCash(Arrays.asList(banknote_1000));
-        assertEquals(1000, atm.checkBalance());
+        assertEquals(1000, atm.getBalance());
     }
 
     @Test

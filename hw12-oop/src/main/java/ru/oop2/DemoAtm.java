@@ -14,19 +14,19 @@ public class DemoAtm {
 
         atm.putCash(Arrays.asList(banknote_10, banknote_1000, banknote_50, banknote_500));
 
-        System.out.println(atm.checkBalance());
+        System.out.println(atm.getBalance());
 
         atm.getCash(1010);
 
-        System.out.println(atm.checkBalance());
+        System.out.println(atm.getBalance());
 
         atm.getCash(550);
 
-        System.out.println(atm.checkBalance());
+        System.out.println(atm.getBalance());
 
         atm.putCash(Arrays.asList(banknote_1000));
 
-        System.out.println(atm.checkBalance());
+        System.out.println(atm.getBalance());
 
         try {
             atm.getCash(2000);

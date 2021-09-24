@@ -9,6 +9,6 @@ public interface Atm {
 
     List<Banknote> getCash(long amountOfMoney);
 
-    long checkBalance();
+    long getBalance();
 
 }

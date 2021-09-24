@@ -20,12 +20,13 @@ public class CashIssueByOrderDescServiceImpl implements CashIssueService {
             throw new StorageHasNoMoneyException("Storage has no money");
         }
 
-        srcBanknotes.sort(Collections.reverseOrder(Comparator.comparingInt(Banknote::getValue)));
+        List<Banknote> orderedDescBanknotes = new ArrayList<>(srcBanknotes);
+        orderedDescBanknotes.sort(Collections.reverseOrder(Comparator.comparingInt(Banknote::getValue)));
 
         long remainder = 0;
         List<Banknote> resultBanknotes = new ArrayList<>();
 
-         for (Banknote banknote : srcBanknotes) {
+         for (Banknote banknote : orderedDescBanknotes) {
             remainder = amountOfMoney - banknote.getValue();
 
             if (remainder >= 0) {

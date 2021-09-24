@@ -26,7 +26,7 @@ public class AtmImpl implements Atm {
     }
 
     @Override
-    public long checkBalance() {
+    public long getBalance() {
         return cashStorage.getAllBanknotes().stream()
                 .map(Banknote::getValue)
                 .reduce(0, Integer::sum);

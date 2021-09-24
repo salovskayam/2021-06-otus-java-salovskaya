@@ -22,35 +22,37 @@ public class CashStorageImpl implements CashStorage {
 
     /**
      *
-     * @param banknotes неотсортированный список вносимых банкнот с дубликатами
+     * @param srcBanknotes неотсортированный список вносимых банкнот с дубликатами
      */
     @Override
-    public void putBanknotes(List<Banknote> banknotes) {
+    public void putBanknotes(List<Banknote> srcBanknotes) {
 
-        banknotes.forEach(banknote -> this.banknotes.compute(
-                banknote, (key, value) -> (value == null) ? 1 : ++value));
+        for (Banknote banknote : srcBanknotes) {
+            this.banknotes.compute(banknote, (key, value) -> (value == null) ? 1 : ++value);
+        }
 
     }
 
     /**
      * Уменьшаем счетчики для всех запрошенных банкнот разом, либо выбрасываем ошибку
      *
-     * @param banknotes список изымающихся банкнот с дубликатами
+     * @param srcBanknotes список изымающихся банкнот с дубликатами
      * @throws StorageHasNoMoneyException выбрасываем ошибку, если банкноты данного номинала
      * еще не было в хранилище, либо счетчик банкноты уже равен 0
      */
     @Override
-    public void removeBanknotes(List<Banknote> banknotes) {
+    public void removeBanknotes(List<Banknote> srcBanknotes) {
         Map<Banknote, Integer> destBanknotes = new HashMap<>(this.banknotes);
 
-        banknotes.forEach(banknote -> destBanknotes.compute(
-                banknote, (key, value) -> {
-                    if (value == null || value <= 0) {
-                        throw new StorageHasNoMoneyException("Storage has no money for issue");
-                    }
+        for (Banknote banknote : srcBanknotes) {
+            destBanknotes.compute(banknote, (key, value) -> {
+                if (value == null || value <= 0) {
+                    throw new StorageHasNoMoneyException("Storage has no money for issue");
+                }
 
-                    return --value;
-                }));
+                return --value;
+            });
+        }
 
         this.banknotes = new HashMap<>(destBanknotes);
     }
