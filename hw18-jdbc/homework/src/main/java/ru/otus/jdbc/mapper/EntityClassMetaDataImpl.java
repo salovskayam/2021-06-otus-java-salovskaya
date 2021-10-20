@@ -10,47 +10,62 @@ import java.util.stream.Collectors;
 
 public class EntityClassMetaDataImpl<T> implements EntityClassMetaData<T> {
 
-    private final Class<T> clazz;
+    private final String entityName;
+    private final Field id;
+    private final Constructor<T> constructor;
+    private final List<Field> allFields;
+    private final List<Field> fieldsWithoutId;
 
     public EntityClassMetaDataImpl(Class<T> clazz) {
-        this.clazz = clazz;
+
+        this.constructor = getConstructorImpl(clazz);
+
+        this.entityName = clazz.getSimpleName().toLowerCase();
+
+        Field[] fields = clazz.getDeclaredFields();
+
+        this.id = Arrays.stream(fields)
+                .filter(f -> f.isAnnotationPresent(Id.class))
+                .findFirst().orElse(null);
+
+        this.allFields = Arrays.stream(fields)
+                .collect(Collectors.toUnmodifiableList());
+
+        this.fieldsWithoutId = Arrays.stream(fields)
+                .filter(f -> !f.isAnnotationPresent(Id.class))
+                .collect(Collectors.toUnmodifiableList());
     }
 
     @Override
     public String getName() {
-        return clazz.getSimpleName().toLowerCase();
+        return entityName;
     }
 
     @Override
     public Constructor<T> getConstructor() {
+        return constructor;
+    }
+
+    @Override
+    public Field getIdField() {
+        return id;
+    }
+
+    @Override
+    public List<Field> getAllFields() {
+        return allFields;
+    }
+
+    @Override
+    public List<Field> getFieldsWithoutId() {
+        return fieldsWithoutId;
+    }
+
+    private Constructor<T> getConstructorImpl(Class<T> clazz) {
         try {
             return clazz.getConstructor();
         } catch (NoSuchMethodException e) {
             throw new DataTemplateException(e);
         }
-    }
-
-    @Override
-    public Field getIdField() {
-        for (Field field : clazz.getDeclaredFields()) {
-            if (field.isAnnotationPresent(Id.class)) {
-                return field;
-            }
-        }
-
-        return null;
-    }
-
-    @Override
-    public List<Field> getAllFields() {
-        return Arrays.stream(clazz.getDeclaredFields())
-                .collect(Collectors.toUnmodifiableList());
-    }
-
-    @Override
-    public List<Field> getFieldsWithoutId() {
-        return Arrays.stream(clazz.getDeclaredFields())
-                .filter(f -> !f.isAnnotationPresent(Id.class))
-                .collect(Collectors.toUnmodifiableList());
     }
 }
