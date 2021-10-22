@@ -6,7 +6,8 @@ import javax.persistence.*;
 @Table(name = "phones")
 public class Phone implements Cloneable {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @SequenceGenerator(name = "phones_seq", sequenceName = "phones_hibernate_sequence", allocationSize=1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "phones_seq")
     @Column(name = "id")
     private Long id;
 
@@ -14,6 +15,7 @@ public class Phone implements Cloneable {
     private String number;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "client_id")
     private Client client;
 
     public Phone() {

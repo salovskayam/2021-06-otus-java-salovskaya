@@ -12,8 +12,9 @@ import java.util.stream.Collectors;
 public class Client implements Cloneable {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    @Column(name = "id")
+    @SequenceGenerator(name = "client_seq", sequenceName = "client_hibernate_sequence", allocationSize=1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "client_seq")
+    @Column(name = "client_id")
     private Long id;
 
     @Column(name = "name")
@@ -23,7 +24,7 @@ public class Client implements Cloneable {
     private Address address;
 
     //owning side - Phone
-    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<Phone> phones = new ArrayList<>();
 
     public Client() {

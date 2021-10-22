@@ -8,7 +8,8 @@ import javax.persistence.*;
 public class Address implements Cloneable {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @SequenceGenerator(name = "address_seq", sequenceName = "address_hibernate_sequence", allocationSize=1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "address_seq")
     @Column(name = "id")
     private Long id;
 
@@ -27,6 +28,7 @@ public class Address implements Cloneable {
     }
 
     @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "client_id")
     private Client client;
 
     public Long getId() {
