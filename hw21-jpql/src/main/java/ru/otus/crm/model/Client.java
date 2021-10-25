@@ -20,7 +20,7 @@ public class Client implements Cloneable {
     @Column(name = "name")
     private String name;
 
-    @OneToOne(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private Address address;
 
     //owning side - Phone
