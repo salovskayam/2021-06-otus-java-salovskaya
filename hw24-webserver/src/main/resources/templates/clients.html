@@ -1,0 +1,71 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Клиенты</title>
+    <script>
+        function Address(street) {
+            this.street = street;
+        };
+        function Phone(number) {
+            this.number = number;
+        };
+        function Client(name, street, phone) {
+            this.name = name;
+            this.address = new Address(street);
+            this.phones = [new Phone(phone)];
+        };
+
+        function clear(){
+            document.getElementById('clientNameTextBox').value = null;
+            document.getElementById('clientAddressTextBox').value = null;
+            document.getElementById('clientPhoneTextBox').value = null;
+        }
+
+        function createClient() {
+            const clientNameTextBox = document.getElementById('clientNameTextBox').value;
+            const clientAddressTextBox = document.getElementById('clientAddressTextBox').value;
+            const clientPhoneTextBox = document.getElementById('clientPhoneTextBox').value;
+
+            if (clientNameTextBox == '' || clientAddressTextBox == '' || clientPhoneTextBox == '') {
+                alert('Необходимо заполнить все поля');
+                return;
+            };
+
+            const clientDataContainer = document.getElementById('clientDataContainer');
+
+            let client = new Client(clientNameTextBox, clientAddressTextBox, clientPhoneTextBox);
+
+            fetch('api/client', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json;charset=utf-8'
+                    },
+                    body: JSON.stringify(client)
+                })
+                .then(response => response.json())
+                .then(clear())
+                .then(savedClient => clientDataContainer.innerHTML = JSON.stringify(savedClient));
+        }
+
+        function getAllClients() {
+            fetch('api/client')
+                .then(response => response.json())
+                .then(clients => {
+                    clientDataContainer.innerHTML = clients.map(item => JSON.stringify(item))
+                      .join(";<br>");
+                });
+        }
+    </script>
+</head>
+
+<body>
+<h4>Создать клиента</h4>
+<p><input type="text" id = "clientNameTextBox" placeholder="Введите имя клиента"></p>
+<p><input type="text" id = "clientAddressTextBox" placeholder="Введите адрес клиента"></p>
+<p><input type="text" id = "clientPhoneTextBox" placeholder="Введите телефон клиента"></p>
+<button onclick="createClient()">Добавить</button>
+<button onclick="getAllClients()">Получить список клиентов</button>
+<pre id = "clientDataContainer"></pre>
+</body>
+
+</html>
