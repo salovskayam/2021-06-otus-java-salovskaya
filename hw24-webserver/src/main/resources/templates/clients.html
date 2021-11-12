@@ -51,8 +51,14 @@
             fetch('api/client')
                 .then(response => response.json())
                 .then(clients => {
-                    clientDataContainer.innerHTML = clients.map(item => JSON.stringify(item))
-                      .join(";<br>");
+                    clientDataContainer.innerHTML = "<table>" +
+                    "<tr><td>Id</td><td>Name</td><td>Address</td><td>Phones</td></tr>" +
+                    clients.map(item => "<tr><td>" + item.id +
+                        "</td><td>" + item.name +
+                        "</td><td>" + item.address.street +
+                        "</td><td>" + item.phones.map(phone => phone.number).join("; ") +
+                        "</td></tr>").join("") +
+                    "</table>";
                 });
         }
     </script>
