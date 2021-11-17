@@ -9,11 +9,14 @@ import ru.otus.appcontainer.api.AppComponentsContainer;
 import ru.otus.config.AppConfig;
 import ru.otus.services.*;
 
+import java.io.PrintStream;
+import java.util.Scanner;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class AppTest {
 
-    @Disabled //надо удалить
+//    @Disabled //надо удалить
     @DisplayName("Из контекста тремя способами должен корректно доставаться компонент с проставленными полями")
     @ParameterizedTest(name = "Достаем по: {0}")
     @CsvSource(value = {"GameProcessor, ru.otus.services.GameProcessor",
@@ -48,9 +51,11 @@ class AppTest {
         assertThat(component).isNotNull();
         assertThat(rootClass).isAssignableFrom(component.getClass());
 
-        for (var field: component.getClass().getFields()){
+        for (var field: component.getClass().getDeclaredFields()){
+            field.setAccessible(true);
             var fieldValue = field.get(component);
-            assertThat(fieldValue).isNotNull().isInstanceOfAny(IOService.class, PlayerService.class, EquationPreparer.class);
+            if (!(fieldValue instanceof String || fieldValue instanceof PrintStream || fieldValue instanceof Scanner))
+                assertThat(fieldValue).isNotNull().isInstanceOfAny(IOService.class, PlayerService.class, EquationPreparer.class);
         }
 
     }
