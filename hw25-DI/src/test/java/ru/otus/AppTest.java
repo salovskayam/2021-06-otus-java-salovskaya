@@ -1,12 +1,12 @@
 package ru.otus;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import ru.otus.appcontainer.AppComponentsContainerImpl;
-import ru.otus.appcontainer.api.AppComponentsContainer;
-import ru.otus.config.AppConfig;
+import ru.otus.config.AppConfig1;
+import ru.otus.config.AppConfig2;
+import ru.otus.config.AppConfig3;
 import ru.otus.services.*;
 
 import java.io.PrintStream;
@@ -36,7 +36,9 @@ class AppTest {
             "equationPreparer, ru.otus.services.EquationPreparer"
     })
     public void shouldExtractFromContextCorrectComponentWithNotNullFields(String classNameOrBeanId, Class<?> rootClass) throws Exception {
-        var ctx = new AppComponentsContainerImpl(AppConfig.class);
+//        var ctx = new AppComponentsContainerImpl(AppConfig.class);
+//        var ctx = new AppComponentsContainerImpl(AppConfig2.class, AppConfig1.class, AppConfig3.class);
+        var ctx = new AppComponentsContainerImpl("ru.otus.config");
 
         assertThat(classNameOrBeanId).isNotEmpty();
         Object component = null;

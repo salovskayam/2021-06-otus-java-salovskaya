@@ -1,61 +1,72 @@
 package ru.otus.appcontainer;
 
+import org.reflections.scanners.SubTypesScanner;
+import org.reflections.scanners.TypeAnnotationsScanner;
+import org.reflections.util.ClasspathHelper;
+import org.reflections.util.ConfigurationBuilder;
+import org.reflections.util.FilterBuilder;
 import ru.otus.appcontainer.api.AppComponent;
 import ru.otus.appcontainer.api.AppComponentsContainer;
 import ru.otus.appcontainer.api.AppComponentsContainerConfig;
+import org.reflections.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("unchecked")
 public class AppComponentsContainerImpl implements AppComponentsContainer {
-//    private final List<Object> appComponents = new ArrayList<>();
-    private final Map<String, Object> appComponentsByName = new HashMap<>();
-    private final Map<Class<?>, Object> appComponentsByClassName = new HashMap<>();
+    private static final Logger logger = LoggerFactory.getLogger(AppComponentsContainerImpl.class);
 
-    public AppComponentsContainerImpl(Class<?> initialConfigClass) {
+    private final Map<String, Object> appComponentsByName = new HashMap<>();
+    private final Map<Class<?>, Object> appComponentsByClass = new HashMap<>();
+
+    public AppComponentsContainerImpl(String packageName) {
+        Class<?>[] classes = getAnnotatedClassesInPackage(packageName, AppComponentsContainerConfig.class);
+        processConfig(classes);
+    }
+
+    public AppComponentsContainerImpl(Class<?>... initialConfigClass) {
         processConfig(initialConfigClass);
     }
 
-    private void processConfig(Class<?> configClass) {
-        checkConfigClass(configClass);
+    private void processConfig(Class<?>... initialConfigClasses) {
+        // проверка, что все классы помечены аннотацией @AppComponentsContainerConfig
+        Arrays.stream(initialConfigClasses).forEach(this::checkConfigClass);
 
-        Object configClassInstance;
-        try {
-            configClassInstance = configClass.getConstructor().newInstance();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        // сортируем классы в зависимости от свойства order аннотации @AppComponentsContainerConfig
+        final List<Class<?>> configClasses = Arrays.stream(initialConfigClasses)
+                .sorted(Comparator.comparingInt(s -> s.getAnnotation(AppComponentsContainerConfig.class).order()))
+                .collect(Collectors.toUnmodifiableList());
 
-        List<Method> methods = Arrays.stream(configClass.getMethods())
-            .filter(s -> s.isAnnotationPresent(AppComponent.class))
-            .sorted(Comparator.comparingInt(s -> s.getAnnotation(AppComponent.class).order()))
-            .collect(Collectors.toUnmodifiableList());
+        // подготавливаем инстансы классов, у которых затем будем вызывать методы для создания бинов
+        final Map<String, Object> configClassInstances = configClasses.stream()
+                .collect(Collectors.toUnmodifiableMap(Class::getSimpleName, clazz -> {
+                    try {
+                        return clazz.getConstructor().newInstance();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }));
+
+        // отсортированные методы из всех конфигов, помеченные аннотацией @AppComponent
+        final List<Method> methods = configClasses.stream().flatMap(s -> Arrays.stream(s.getMethods()))
+                .filter(s -> s.isAnnotationPresent(AppComponent.class))
+                .sorted(Comparator.comparingInt(s -> s.getAnnotation(AppComponent.class).order()))
+                .collect(Collectors.toUnmodifiableList());
 
         for (Method method : methods) {
-            Object obj;
-            Object[] params;
-            if (method.getParameterCount() == 0) {
-                try {
-                    obj = method.invoke(configClassInstance);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            } else {
-                params = Arrays.stream(method.getParameters())
-                    .map(m -> appComponentsByClassName.get(m.getType()))
-                    .toArray();
-                try {
-                    obj = method.invoke(configClassInstance, params);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }
+            Object obj = callMethod(method, configClassInstances.get(method.getDeclaringClass().getSimpleName()));
 
             appComponentsByName.put(method.getAnnotation(AppComponent.class).name(), obj);
-            appComponentsByClassName.put(method.getReturnType(), obj);
+            appComponentsByClass.put(method.getReturnType(), obj);
+            logger.info("Создан бин {}", obj.getClass().getSimpleName());
         }
+        
     }
 
     private void checkConfigClass(Class<?> configClass) {
@@ -66,18 +77,52 @@ public class AppComponentsContainerImpl implements AppComponentsContainer {
 
     @Override
     public <C> C getAppComponent(Class<C> componentClass) {
-        if (appComponentsByClassName.containsKey(componentClass)) {
-            return (C) appComponentsByClassName.get(componentClass);
+        if (appComponentsByClass.containsKey(componentClass)) {
+            return (C) appComponentsByClass.get(componentClass);
         }
 
         return Arrays.stream(componentClass.getInterfaces())
-                    .filter(appComponentsByClassName::containsKey)
+                    .filter(appComponentsByClass::containsKey)
                     .findFirst()
-                    .map(clazz -> (C) appComponentsByClassName.get(clazz)).orElse(null);
+                    .map(clazz -> (C) appComponentsByClass.get(clazz)).orElse(null);
     }
 
     @Override
     public <C> C getAppComponent(String componentName) {
         return (C) appComponentsByName.get(componentName);
+    }
+
+    private Class<?>[] getAnnotatedClassesInPackage(String packageName, Class<? extends Annotation> annotation) {
+        List<ClassLoader> classLoadersList = new LinkedList<>();
+        classLoadersList.add(ClasspathHelper.contextClassLoader());
+        classLoadersList.add(ClasspathHelper.staticClassLoader());
+
+        Reflections reflections = new Reflections(new ConfigurationBuilder()
+                .setScanners(new SubTypesScanner(false), new TypeAnnotationsScanner())
+                .setUrls(ClasspathHelper.forPackage(packageName))
+                .filterInputsBy(new FilterBuilder().include(FilterBuilder.prefix(packageName))));
+
+        Set<Class<?>> annotated = reflections.getTypesAnnotatedWith(annotation);
+        return annotated.toArray(Class<?>[]::new);
+    }
+
+    private Object callMethod(Method method, Object configClassInstance) {
+        Object obj;
+
+        Object[] params = Arrays.stream(method.getParameters()).map(m -> {
+            if (appComponentsByClass.containsKey(m.getType())) {
+                return appComponentsByClass.get(m.getType());
+            } else {
+                throw new RuntimeException(String.format("Отсутствует бин %s", m.getType().getSimpleName()));
+            }
+        }).toArray();
+
+        try {
+            obj = method.invoke(configClassInstance, params);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        
+        return obj;
     }
 }
