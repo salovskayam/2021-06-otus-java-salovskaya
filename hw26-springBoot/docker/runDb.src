@@ -1,0 +1,12 @@
+docker run --rm --name pg-docker \
+-e POSTGRES_PASSWORD=pwd \
+-e POSTGRES_USER=usr \
+-e POSTGRES_DB=demoDB \
+-p 5430:5432 \
+postgres:13
+
+docker run --name pgadmin4 \
+-e "PGADMIN_DEFAULT_EMAIL=ms@ya.ru" \
+-e "PGADMIN_DEFAULT_PASSWORD=pwd" \
+-p 80:80
+-d dpage/pgadmin4
