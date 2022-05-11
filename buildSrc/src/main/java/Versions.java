@@ -11,4 +11,6 @@ public interface Versions {
     String freemarker = "2.3.31";
 
     String reflections = "0.9.12";
+
+    String jsr305 = "3.0.2";
 }
