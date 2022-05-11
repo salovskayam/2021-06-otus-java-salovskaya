@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
+
+    <title>Create client</title>
+</head>
+<body>
+
+<div class="container shadow pt-5 bg-light py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <form id="create-form" th:action="@{/client/save}" th:object="${client}" th:method="post" accept-charset="utf-8" class="mb-3">
+                <h1>New Client:</h1>
+                <input type="hidden" th:field="*{id}">
+
+                <div class="mb-3">
+                    <label for="clientName" class="form-label">Name:</label>
+                    <input id="clientName" class="form-control" name="name" placeholder="Name" type="text" th:field="*{name}" th:errorclass="is-invalid" />
+                    <div th:if="${#fields.hasErrors('name')}" class="invalid-feedback" th:errors="*{name}"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="clientAddress" class="form-label">Address:</label>
+                    <input id="clientAddress" class="form-control" name="address" placeholder="Address" type="text" th:field="*{address.street}" th:errorclass="is-invalid" />
+                    <div th:if="${#fields.hasErrors('address.street')}" class="invalid-feedback" th:errors="*{address.street}"></div>
+                </div>
+
+                <div class="row my-3">
+                    <div class="col">
+                        <h5>Contacts</h5>
+                        <div class="table-responsive update-contacts">
+                            <table class="table">
+                                <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Phone</th>
+                                    <th>
+                                        <button type="button" name="addPhone" class="btn btn-outline-success" data-update-contacts-url="/addPhone">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </th>
+                                </tr>
+                                <tbody id="tblPhones">
+                                    <tr th:fragment="phoneList" th:each="phone,rowStat : ${client.phonesAsList}">
+                                        <td th:text="${rowStat.count}">1</td>
+                                        <td>
+                                            <input type="hidden" th:field="${client.phonesAsList[__${rowStat.index}__].id}">
+                                            <input  id="clientPhoneTextBox" class="form-control" type="text" placeholder="add phone number" th:field="${client.phonesAsList[__${rowStat.index}__].clientPhone}" th:errorclass="is-invalid"/>
+                                            <div th:if="${#fields.hasErrors('${client.phonesAsList[__${rowStat.index}__].clientPhone}')}" class="invalid-feedback" th:errors="${client.phonesAsList[__${rowStat.index}__].clientPhone}"></div>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-danger" type="button" name="removePhone" th:value="${rowStat.index}" data-update-contacts-url="/removePhone">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Submit</button>
+
+                <div th:if="${#fields.hasErrors('${client.phonesAsList}')}" class="alert alert-danger alert-dismissible mt-3">
+                    <button type="button" class="btn-close" data-dismiss="alert"></button>
+                    <div th:errors="${client.phonesAsList}">Input is incorrect</div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/5.0.0-alpha1/js/bootstrap.min.js" integrity="sha384-oesi62hOLfzrys4LxRF63OJCXdXDipiYWBnvTl9Y9/TRlw5xlKIEHpNyvvDShgf/" crossorigin="anonymous"></script>
+<script src="../static/scripts.js" th:src="@{/scripts.js}"></script>
+</body>
+</html>
