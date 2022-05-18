@@ -3,6 +3,9 @@ package ru.otus.demo;
 import org.hibernate.cfg.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.otus.cachehw.HwCache;
+import ru.otus.cachehw.HwListener;
+import ru.otus.cachehw.MyCache;
 import ru.otus.core.repository.DataTemplateHibernate;
 import ru.otus.core.repository.HibernateUtils;
 import ru.otus.core.sessionmanager.TransactionManagerHibernate;
@@ -35,7 +38,18 @@ public class DbServiceDemo {
 ///
         var clientTemplate = new DataTemplateHibernate<>(Client.class);
 ///
-        var dbServiceClient = new DbServiceClientImpl(transactionManager, clientTemplate);
+        HwCache<Long, Client> cache = new MyCache<>();
+
+        HwListener<Long, Client> listener = new HwListener<>() {
+            @Override
+            public void notify(Long id, Client client, String action) {
+                log.info("key:{}, value:{}, action: {}", id, client, action);
+            }
+        };
+
+        cache.addListener(listener);
+
+        var dbServiceClient = new DbServiceClientImpl(transactionManager, clientTemplate, cache);
 
         var clientFirst = new Client("dbServiceFirst");
 

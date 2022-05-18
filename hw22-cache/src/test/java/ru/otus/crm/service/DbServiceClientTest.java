@@ -7,6 +7,7 @@ import ru.otus.crm.model.Address;
 import ru.otus.crm.model.Client;
 import ru.otus.crm.model.Phone;
 
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("Демо работы с hibernate (с абстракциями) должно ")
@@ -45,7 +46,13 @@ class DbServiceClientTest extends AbstractHibernateTest {
         var clientList = dbServiceClient.findAll();
 
         //then
-        assertThat(clientList.size()).isEqualTo(1);
+        assertThat(clientList).hasSize(1);
         assertThat(clientList.get(0)).usingRecursiveComparison().isEqualTo(loadedClient.get());
+
+        //when
+        var cache = dbServiceClient.getCache();
+
+        //then
+        assertThat(cache.get(loadedClient.get().getId())).usingRecursiveComparison().isEqualTo(loadedClient.get());
     }
 }
