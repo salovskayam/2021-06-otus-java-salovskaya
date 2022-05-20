@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+      <Pattern>%d{yyyy-MM-dd_HH:mm:ss.SSS} %-5level %logger{36} - %msg%n
+      </Pattern>
+    </encoder>
+  </appender>
+
+  <!--<logger name="org.hibernate.SQL" level="ERROR"/>-->
+  <logger name="org.hibernate" level="ERROR"/>
+  <logger name="ch.qos.logback" level="ERROR"/>
+
+  <appender name="APP_LOG" class="ch.qos.logback.core.FileAppender">
+    <filter class="ch.qos.logback.classic.filter.LevelFilter">
+      <level>TRACE</level>
+      <onMatch>ACCEPT</onMatch>
+      <onMismatch>DENY</onMismatch>
+    </filter>
+
+    <file>logs/application.log</file>
+    <encoder>
+      <pattern>%date %level [%thread] [%file:%line] %msg%n</pattern>
+    </encoder>
+  </appender>
+
+
+  <logger name="ru.otus.crm.service.DbServiceClientImpl" level="TRACE" additivity="false">
+    <appender-ref ref="APP_LOG" />
+  </logger>
+
+  <root level="INFO">
+    <appender-ref ref="STDOUT"/>
+  </root>
+
+</configuration>
